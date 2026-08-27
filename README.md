@@ -290,3 +290,21 @@ GitHub repository:
 ```text
 https://github.com/ayeshawaqar4252/tasks-client
 ```
+
+
+## Week 9 Acceptance Criteria
+
+This project satisfies the Week 9 Tasks Client requirements:
+
+- Next.js App Router with TypeScript and Tailwind CSS
+- Client-side authentication and guarded `/tasks` route
+- Typed API wrapper with centralized `fetch` handling
+- Bearer token authentication
+- Centralized browser session storage
+- Task listing, creation, editing, deletion, and status filtering
+- API validation error handling
+- Loading, error, empty, and results states
+- Jest tests with mocked `fetch`
+- Production build works without the API running
+- GitHub Actions CI runs `npm ci`, `npm run build`, and `npm test`
+- No real `.env` or secrets are committed
