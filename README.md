@@ -1,152 +1,180 @@
-# Week 9 — Tasks Client
+# Tasks Client — Week 9
 
-A Next.js App Router frontend for the Week 8 NestJS Tasks API.
+A Next.js App Router frontend for the authenticated Tasks API built during Week 8 of the Coding Pixel internship program.
 
-The application uses TypeScript, Tailwind CSS, browser storage for authentication, and a centralized API wrapper for all HTTP requests.
+The application is built with **Next.js, TypeScript, Tailwind CSS, and React**. It communicates with the Week 8 NestJS API through a single typed API wrapper.
 
-## Tech Stack
+## Features
 
-* Next.js 16
-* React
-* TypeScript
-* Tailwind CSS
-* NestJS API
-* Jest
-* React Testing Library
+* User sign-in with email and password
+* Client-side authentication guard
+* Session restoration from browser storage
+* Authenticated API requests with Bearer tokens
+* Task listing
+* Task creation
+* Task editing
+* Task deletion
+* Status-based filtering
+* API validation error handling
+* Loading, error, empty, and results states
+* Jest and React Testing Library tests
+* GitHub Actions CI for build and tests
 
 ## Project Structure
 
 ```text
 tasks-client/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── __tests__/
+│   ├── helpers/
+│   │   └── mockFetch.ts
+│   ├── api.test.ts
+│   ├── tasks.test.tsx
+│   └── tasks-create.test.tsx
 ├── src/
 │   ├── app/
 │   │   ├── login/
-│   │   └── tasks/
+│   │   │   └── page.tsx
+│   │   ├── tasks/
+│   │   │   └── page.tsx
+│   │   ├── layout.tsx
+│   │   └── page.tsx
 │   ├── components/
 │   │   ├── AuthProvider.tsx
 │   │   └── useAuth.ts
 │   └── lib/
 │       ├── api.ts
 │       └── session.ts
-├── __tests__/
-│   ├── api.test.ts
-│   ├── tasks.test.tsx
-│   ├── tasks-create.test.tsx
-│   └── helpers/
-├── .github/
-│   └── workflows/
-│       └── ci.yml
 ├── .env.example
 ├── jest.config.ts
 ├── jest.setup.ts
 ├── package.json
-└── package-lock.json
+└── README.md
 ```
 
 ## Environment Variables
 
-Create a local environment file named `.env.local`.
+The application uses the following environment variable:
+
+```env
+NEXT_PUBLIC_API_URL=
+```
+
+`NEXT_PUBLIC_API_URL` is the base URL of the Week 8 Tasks API.
+
+Example for local development:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-`NEXT_PUBLIC_API_URL` is the base URL of the Week 8 NestJS API.
+Do not commit a real `.env` or `.env.local` file.
 
-Do not commit `.env.local` or any real environment file. Only `.env.example` is committed.
+Only `.env.example` is committed to the repository.
 
-If the environment variable is missing, the application can still build and the tests can run because the API wrapper falls back to an empty base URL.
+The API wrapper falls back to an empty base URL when `NEXT_PUBLIC_API_URL` is not available. This allows `npm run build` and `npm test` to run without a reachable API.
 
-## Running the Week 8 API
+## Prerequisites
 
-Open a terminal in the Week 8 NestJS API project and run:
+Make sure the following are installed:
 
-```bash
+* Node.js
+* npm
+* PostgreSQL for the Week 8 API
+
+The Week 8 API must be configured with its required database environment variables before starting it.
+
+## Running the Week 8 API and Week 9 Client
+
+The API and frontend are separate projects.
+
+### 1. Start the Week 8 API
+
+Open a terminal in the Week 8 API directory:
+
+```powershell
+cd "D:\web project\CODING PIXEL ROAD MAP\week 8\Authenticated Tasks Api"
+npm install
 npm run start:dev
 ```
 
-Make sure the API is running on the URL configured in `NEXT_PUBLIC_API_URL`.
+The NestJS API will start in development/watch mode.
 
-## Running the Tasks Client
+### 2. Start the Week 9 Tasks Client
 
-Open another terminal in this project:
+Open a second terminal in the Week 9 client directory:
 
-```bash
+```powershell
+cd "D:\web project\CODING PIXEL ROAD MAP\week 9\tasks-client"
 npm install
 npm run dev
 ```
 
-The frontend runs at:
+Then open:
 
 ```text
 http://localhost:3000
 ```
 
-The API and frontend should be running side by side in separate terminals.
+The client uses `NEXT_PUBLIC_API_URL` to determine where API requests are sent.
 
-## Account and Sign In
+## Getting an Account and Signing In
 
-The Tasks Client uses the authentication system from the Week 8 NestJS API.
+The Tasks Client requires an account provided by the Week 8 API.
+
+Create an account using the registration endpoint exposed by the Week 8 API, or use an existing account created in the Week 8 backend.
+
+After an account exists:
 
 1. Start the Week 8 API.
-2. Create an account using the API's registration endpoint or an existing account.
-3. Start the Tasks Client.
-4. Open `/login`.
-5. Enter the account email and password.
-6. After successful authentication, the application redirects to `/tasks`.
+2. Start the Week 9 Tasks Client.
+3. Open `http://localhost:3000`.
+4. Go to the login page.
+5. Enter the registered email and password.
+6. Submit the form.
+7. On successful authentication, the client stores the returned token and redirects to `/tasks`.
 
-A wrong password is displayed as an authentication error in the login form.
+A wrong email/password response from the API is displayed in the login form.
 
-## Authentication and Token Storage
+## Authentication and Session Storage
 
-After successful sign-in, the API returns an authentication token.
+The authentication token is stored in the browser's `localStorage`.
 
-The token is stored in browser `localStorage` through `src/lib/session.ts`.
+The storage access is centralized in:
 
-All API requests are made through `src/lib/api.ts`. When a token exists, the API wrapper automatically adds:
+```text
+src/lib/session.ts
+```
+
+The `AuthProvider` restores the session when the application starts and exposes authentication state and actions to client components.
+
+The API wrapper in:
+
+```text
+src/lib/api.ts
+```
+
+automatically adds:
 
 ```text
 Authorization: Bearer <token>
 ```
 
-The token is not stored in an HTTP-only cookie because this Week 9 exercise specifically requires browser storage and client-side authentication.
+when a session token exists.
 
-### Cost of localStorage
+### Why localStorage is used
 
-Using `localStorage` makes the implementation simple and allows Client Components to access the token directly. However, JavaScript running on the page can access the token, so an XSS vulnerability could potentially expose it.
+`localStorage` is simple and suitable for this learning exercise, but it has an important security trade-off.
 
-An HTTP-only cookie would prevent JavaScript from directly reading the authentication token, providing stronger protection against token theft, but that approach is intentionally not used for this exercise.
+JavaScript running on the page can access the stored token. Therefore, if the application has an XSS vulnerability, malicious JavaScript could potentially read the token.
 
-## Tasks Features
+A production application may use a more secure authentication architecture, such as appropriately configured secure, HttpOnly cookies, together with CSRF protections where required.
 
-The Tasks Client supports:
+This project intentionally follows the Week 9 requirement of keeping the token in browser storage and does not use `middleware.ts` or HttpOnly cookies.
 
-* User sign-in
-* Client-side authentication guard
-* Loading tasks
-* Empty task state
-* Error state
-* Task list
-* Create task
-* Edit task
-* Delete task
-* Status filtering
-* Todo status
-* In-progress status
-* Done status
-* API validation errors
-* Authorization headers
-* Sign out
-
-Status filtering is performed by requesting the API with:
-
-```text
-/tasks?status=
-```
-
-The filtering is therefore performed by the API rather than by filtering the already-loaded tasks in the browser.
-
-## API Wrapper
+## API Layer
 
 All API requests go through:
 
@@ -156,42 +184,70 @@ src/lib/api.ts
 
 Pages, components, and hooks do not call `fetch` directly.
 
-The wrapper is responsible for:
+The API wrapper:
 
-* Building the API URL
-* Adding the Bearer token
-* Handling non-2xx responses
-* Decoding API error responses
-* Handling HTTP 204 responses
-* Returning typed API data
+* Adds the Bearer authorization header when a token exists
+* Handles successful responses
+* Handles `204 No Content`
+* Decodes the Week 8 API error envelope
+* Throws `ApiError` for non-2xx responses
+* Handles authentication/session failures centrally
+
+## Tasks
+
+The `/tasks` page provides:
+
+* Task listing from `GET /tasks`
+* Status filtering using `GET /tasks?status=...`
+* Task creation using `POST /tasks`
+* Task editing using `PATCH /tasks/:id`
+* Task deletion using `DELETE /tasks/:id`
+
+The task page is client-side guarded. Users without an active session are redirected to `/login`.
+
+The task list displays separate loading, error, empty, and results states.
 
 ## Testing
 
 The project uses Jest and React Testing Library.
 
-Run the complete test suite with:
+Run the tests with:
 
-```bash
+```powershell
 npm test
 ```
 
-The test suite covers:
+The test suite contains three specifications:
 
-* Authorization header with a token
-* No Authorization header without a token
-* Rendering multiple tasks
-* Rendering the empty state
-* Creating a task
-* Handling API validation errors
-* Keeping entered form values after a 400 response
+### API Authorization
 
-All API requests are mocked during tests.
+Verifies that the API wrapper:
+
+* Adds the Bearer authorization header when a token exists
+* Does not add the authorization header when there is no token
+
+### Tasks List
+
+Verifies that:
+
+* A task row is rendered for each task returned by the mocked API
+* The empty state is rendered when the API returns an empty list
+
+### Task Creation
+
+Verifies that:
+
+* A newly created task appears after a successful `201` response
+* API validation errors are displayed
+* Entered form values remain after a `400` response
+
+All API requests are mocked during testing.
 
 ## Production Build
 
-To verify the production build:
+Run:
 
-```bash
+```powershell
 npm run build
 ```
 
@@ -199,7 +255,10 @@ The build does not require the Week 8 API to be running.
 
 ## Continuous Integration
 
-GitHub Actions runs on every push and pull request.
+GitHub Actions runs on:
+
+* Push
+* Pull request
 
 The workflow is located at:
 
@@ -207,16 +266,27 @@ The workflow is located at:
 .github/workflows/ci.yml
 ```
 
-The CI workflow uses Node.js 20 and runs:
+The CI workflow:
 
-```bash
-npm ci
+1. Installs dependencies using `npm ci`
+2. Builds the Next.js application
+3. Runs the Jest test suite
+
+The workflow uses Node.js 20.
+
+## Useful Commands
+
+```powershell
+npm run dev
 npm run build
 npm test
+npm start
 ```
 
-The repository includes `package-lock.json` so that `npm ci` can install dependencies from a clean checkout.
+## Repository
 
-## Week 9 Acceptance
+GitHub repository:
 
-The project fulfills the Week 9 Tasks Client requirements by providing a separate Next.js frontend that communicates with the Week 8 NestJS API using real API requests, client-side authentication, centralized API handling, task CRUD operations, server-side status filtering, automated tests, and GitHub Actions CI.
+```text
+https://github.com/ayeshawaqar4252/tasks-client
+```
